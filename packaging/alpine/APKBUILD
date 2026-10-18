@@ -1,6 +1,6 @@
 # Maintainer: Mikhail Nevskiy <rensomail@gmail.com>
 pkgname=b8k-news
-pkgver=1.1
+pkgver=1.1.1
 pkgrel=0
 pkgdesc="Новости: News from the papers one picks, in large type (GTK 3)"
 url="https://github.com/trudenboy/b8k-news"
