@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=News
+Name[ru]=Новости
+Comment=News from the papers one picks, in large type
+Comment[ru]=Новости выбранных изданий крупным шрифтом
+Exec=b8k-news
+Icon=io.github.trudenboy.News
+Terminal=false
+Categories=GTK;Network;News;
+Keywords=news;rss;новости;лента;
+StartupNotify=true
+X-B8K-Home=true
+X-B8K-Replaces=news

@@ -1,0 +1,19 @@
+# Maintainer: Mikhail Nevskiy <rensomail@gmail.com>
+pkgname=b8k-news
+pkgver=1.1
+pkgrel=0
+pkgdesc="Новости: News from the papers one picks, in large type (GTK 3)"
+url="https://github.com/trudenboy/b8k-news"
+arch="noarch"
+license="GPL-2.0-only"
+depends="python3 py3-gobject3 gtk+3.0"
+source="$pkgname-$pkgver.tar.gz::https://github.com/trudenboy/b8k-news/archive/v$pkgver.tar.gz"
+
+options="!check"
+
+package() {
+	sh ./install.sh "$pkgdir" /usr
+}
+
+# `abuild checksum` fills this in for a release.
+sha512sums="SKIP"
