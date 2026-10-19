@@ -8,7 +8,7 @@
 # One title only: the header bar. A second "Новости" label used to sit under it.
 # The sources are one's own: the gear in the header lists them, removes
 # them and adds a feed (RSS or Atom) or a site (its feed is found through
-# <link rel="alternate">). They are kept in ~/.config/b8k/news.conf; the
+# <link rel="alternate">). They are kept in ~/.config/haltia/news.conf; the
 # three Petersburg papers until then.
 import configparser
 import html
@@ -24,9 +24,9 @@ from email.utils import parsedate_to_datetime
 import gi
 from gi.repository import GLib
 
-APP_ID = "io.github.trudenboy.News"
+APP_ID = "io.github.haltia_de.News"
 # Under Wayland GTK 3 names the window by the program name: the program's
-# id, as its .desktop file is named, so a desktop or the b8k shell finds it.
+# id, as its .desktop file is named, so a desktop or the Haltia shell finds it.
 GLib.set_prgname(APP_ID)
 
 gi.require_version("Gdk", "3.0")
@@ -39,18 +39,32 @@ from gi.repository import Gdk, GdkPixbuf, GLib, Gtk  # noqa: E402,F811
 
 
 
+
+def _config(name):
+    """~/.config/haltia/<name>.conf; until 3.0 the file from before the
+    rename (~/.config/b8k, ADR 0004) moves there on the first start."""
+    new = os.path.expanduser("~/.config/haltia/%s.conf" % name)
+    old = os.path.expanduser("~/.config/b8k/%s.conf" % name)
+    try:
+        if os.path.exists(old) and not os.path.exists(new):
+            os.makedirs(os.path.dirname(new), exist_ok=True)
+            os.replace(old, new)
+    except OSError:
+        pass
+    return new
+
 # Newest stories first, mixed across papers. Each row keeps its own time.
-# The papers' logos: PREFIX/share/b8k-news next to PREFIX/bin, or the
+# The papers' logos: PREFIX/share/haltia-news next to PREFIX/bin, or the
 # checkout's own folder.
 HERE = os.path.dirname(os.path.realpath(__file__))
 LOGOS = HERE if os.path.exists(os.path.join(HERE, "news-dp.png")) else \
-    os.path.join(os.path.dirname(HERE), "share", "b8k-news")
+    os.path.join(os.path.dirname(HERE), "share", "haltia-news")
 DEFAULT_FEEDS = (
     ("Интерфакс", "https://www.interfax.ru/rss", os.path.join(LOGOS, "news-interfax.png")),
     ("Фонтанка", "https://www.fontanka.ru/rss-feeds/rss.xml", os.path.join(LOGOS, "news-fontanka.png")),
     ("Деловой Петербург", "https://www.dp.ru/news.rss", os.path.join(LOGOS, "news-dp.png")),
 )
-CONFIG = os.path.expanduser("~/.config/b8k/news.conf")
+CONFIG = _config("news")
 ATOM = "{http://www.w3.org/2005/Atom}"
 COLOURS = ((0.21, 0.52, 0.89), (0.15, 0.64, 0.41), (0.90, 0.38, 0.0), (0.57, 0.25, 0.67),
            (0.75, 0.11, 0.16), (0.10, 0.58, 0.62), (0.53, 0.36, 0.24))
@@ -208,7 +222,7 @@ def get(url, limit=2 * 1024 * 1024, timeout=10):
     """(bytes, final url, content type) of an http(s) page."""
     import urllib.request
 
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 b8k-news"})
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 haltia-news"})
     with urllib.request.urlopen(req, timeout=timeout) as fh:
         return fh.read(limit), fh.geturl(), fh.headers.get_content_type()
 
@@ -542,7 +556,7 @@ class News(Gtk.Application):
         title = Gtk.Label(label="Новости")
         title.get_style_context().add_class("title")
         header.set_custom_title(title)
-        # The same button as in b8k-weather: the symbolic icon, white on blue.
+        # The same button as in haltia-weather: the symbolic icon, white on blue.
         self.refresh_btn = Gtk.Button.new_from_icon_name("view-refresh-symbolic",
                                                          Gtk.IconSize.DIALOG)
         self.refresh_btn.get_style_context().add_class("refresh")

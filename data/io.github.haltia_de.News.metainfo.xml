@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.trudenboy.News</id>
+  <id>io.github.haltia_de.News</id>
+  <replaces><id>io.github.trudenboy.News</id></replaces>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-2.0-only</project_license>
   <name>News</name>
   <name xml:lang="ru">Новости</name>
-  <summary>News from the papers one picks, in large type</summary>
-  <summary xml:lang="ru">Новости выбранных изданий крупным шрифтом</summary>
+  <summary>News from the papers one picks</summary>
+  <summary xml:lang="ru">Новости выбранных изданий</summary>
   <description>
     <p xml:lang="ru">Свежие новости нескольких изданий одной лентой (RSS) и текст статьи прямо в программе; источники выбираются в настройках.</p>
-    <p>Large, touch-first and simple, made for an older person's tablet; at home on any GTK desktop.</p>
+    <p>Calm, touch-first and simple, part of the Haltia desktop; at home on any GTK desktop.</p>
   </description>
-  <launchable type="desktop-id">io.github.trudenboy.News.desktop</launchable>
-  <url type="homepage">https://github.com/trudenboy/b8k-news</url>
-  <developer id="io.github.trudenboy"><name>Mikhail Nevskiy</name></developer>
+  <launchable type="desktop-id">io.github.haltia_de.News.desktop</launchable>
+  <url type="homepage">https://github.com/haltia-de/news</url>
+  <developer id="io.github.haltia_de"><name>Mikhail Nevskiy</name></developer>
   <content_rating type="oars-1.1"/>
   <requires><control>touch</control></requires>
   <releases>
+    <release version="2.0.0" date="2026-10-19"/>
     <release version="1.1.1" date="2026-10-18"/>
     <release version="1.1" date="2026-10-18"/>
   </releases>
