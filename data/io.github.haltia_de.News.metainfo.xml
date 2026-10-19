@@ -18,6 +18,12 @@
   <content_rating type="oars-1.1"/>
   <requires><control>touch</control></requires>
   <releases>
+    <release version="2.2.0" date="2026-10-19">
+      <description>
+        <p>News is also available as a Flatpak and as a package for Debian and Ubuntu.</p>
+        <p xml:lang="ru">Новости теперь есть и в Flatpak, и пакетом для Debian и Ubuntu.</p>
+      </description>
+    </release>
     <release version="2.1.2" date="2026-10-19">
       <description>
         <p>The list of feeds lives in the standard XDG config folder, ready for Flatpak.</p>

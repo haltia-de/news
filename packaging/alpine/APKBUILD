@@ -1,6 +1,6 @@
 # Maintainer: Mikhail Nevskiy <rensomail@gmail.com>
 pkgname=haltia-news
-pkgver=2.1.2
+pkgver=2.2.0
 pkgrel=0
 pkgdesc="Новости: News from the papers one picks (GTK 3)"
 url="https://github.com/haltia-de/news"
