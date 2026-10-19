@@ -18,6 +18,12 @@
   <content_rating type="oars-1.1"/>
   <requires><control>touch</control></requires>
   <releases>
+    <release version="2.1.2" date="2026-10-19">
+      <description>
+        <p>The list of feeds lives in the standard XDG config folder, ready for Flatpak.</p>
+        <p xml:lang="ru">Список лент лежит в стандартной папке настроек XDG: Новости готовы к Flatpak.</p>
+      </description>
+    </release>
     <release version="2.1.1" date="2026-10-19">
       <description>
         <p>Feeds are handed to feedparser as data only, never as a file name or an address.</p>
