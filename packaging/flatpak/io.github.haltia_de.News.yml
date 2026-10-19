@@ -1,0 +1,39 @@
+# Новости as a Flatpak: flatpak-builder --user --install build packaging/flatpak/io.github.haltia_de.News.yml
+# Python 3, PyGObject and GTK 3 come with the GNOME runtime; feedparser
+# (with sgmllib3k) at the versions of requirements.txt. Built from this
+# checkout (CI checks out the tag).
+id: io.github.haltia_de.News
+runtime: org.gnome.Platform
+runtime-version: '51'
+sdk: org.gnome.Sdk
+command: haltia-news
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+modules:
+  - name: python3-feedparser
+    buildsystem: simple
+    build-commands:
+      - pip3 install --verbose --exists-action=i --no-index --find-links="file://${PWD}"
+        --prefix=${FLATPAK_DEST} --no-build-isolation feedparser
+    sources:
+      - type: file
+        url: https://files.pythonhosted.org/packages/9e/bd/3704a8c3e0942d711c1299ebf7b9091930adae6675d7c8f476a7ce48653c/sgmllib3k-1.0.0.tar.gz
+        sha256: 7868fb1c8bfa764c1ac563d3cf369c381d1325d36124933a726f29fcdaa812e9
+      - type: file
+        url: https://files.pythonhosted.org/packages/4e/eb/c96d64137e29ae17d83ad2552470bafe3a7a915e85434d9942077d7fd011/feedparser-6.0.12-py3-none-any.whl
+        sha256: 6bbff10f5a52662c00a2e3f86a38928c37c48f77b3c511aedcd51de933549324
+  - name: haltia-news
+    buildsystem: simple
+    build-commands:
+      - install -D -m 755 haltia-news /app/bin/haltia-news
+      - install -D -m 644 -t /app/share/haltia-news news-dp.png news-fontanka.png news-interfax.png
+      - install -D -m 644 data/io.github.haltia_de.News.desktop /app/share/applications/io.github.haltia_de.News.desktop
+      - install -D -m 644 data/io.github.haltia_de.News.svg /app/share/icons/hicolor/scalable/apps/io.github.haltia_de.News.svg
+      - install -D -m 644 data/io.github.haltia_de.News.metainfo.xml /app/share/metainfo/io.github.haltia_de.News.metainfo.xml
+    sources:
+      - type: dir
+        path: ../..

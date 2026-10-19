@@ -1,0 +1,17 @@
+Source: haltia-news
+Section: net
+Priority: optional
+Maintainer: Haltia <rensomail@gmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.7.0
+Homepage: https://github.com/haltia-de/news
+Rules-Requires-Root: no
+
+Package: haltia-news
+Architecture: all
+Depends: ${misc:Depends}, python3, python3-gi, gir1.2-gtk-3.0, python3-feedparser
+Description: news from RSS and Atom feeds, large and simple
+ Новости (News) shows the latest stories of the feeds one chooses, newest
+ first, with pictures, and reads a story on its own page. Feeds are found
+ by a site's address or by words. Part of Haltia, a calm touch desktop; it
+ runs on any GTK desktop.
