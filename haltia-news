@@ -226,15 +226,24 @@ def get(url, limit=2 * 1024 * 1024, timeout=10):
         return fh.read(limit), fh.geturl(), fh.headers.get_content_type()
 
 
+ENTITY_MARKS = tuple("<!ENTITY".encode(enc) for enc in ("ascii", "utf-16-le", "utf-16-be",
+                                                       "utf-32-le", "utf-32-be"))
+
+
 def parse_feed(raw):
     """A feed through feedparser (RSS 0.9-2.0, RDF, Atom; encodings and
     broken feeds handled), or None when raw is no feed."""
+    import io
+
     import feedparser
 
-    # Feeds come from anywhere now: no entity declarations, no expansion games.
-    if b"<!ENTITY" in raw[:4096]:
+    # Feeds come from anywhere now: no entity declarations, no expansion
+    # games, in whatever encoding the feed is written.
+    if any(mark in raw for mark in ENTITY_MARKS):
         raise ValueError("entity declarations in the feed")
-    feed = feedparser.parse(raw)
+    # A stream, never bytes or text: feedparser takes those for a file name
+    # or an address and would open a local file or fetch past get()'s limit.
+    feed = feedparser.parse(io.BytesIO(raw))
     return feed if feed.get("version") else None
 
 

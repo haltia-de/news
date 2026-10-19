@@ -18,6 +18,12 @@
   <content_rating type="oars-1.1"/>
   <requires><control>touch</control></requires>
   <releases>
+    <release version="2.1.1" date="2026-10-19">
+      <description>
+        <p>Feeds are handed to feedparser as data only, never as a file name or an address.</p>
+        <p xml:lang="ru">Ленты передаются feedparser только как данные, никогда как имя файла или адрес.</p>
+      </description>
+    </release>
     <release version="2.1.0" date="2026-10-19">
       <description>
         <p>Feeds are read by feedparser: more sites' feeds open, including RDF and broken ones, and stories get their pictures from media tags too.</p>
