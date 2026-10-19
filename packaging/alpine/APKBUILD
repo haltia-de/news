@@ -1,6 +1,6 @@
 # Maintainer: Mikhail Nevskiy <rensomail@gmail.com>
 pkgname=haltia-news
-pkgver=2.0.2
+pkgver=2.1.0
 pkgrel=0
 pkgdesc="Новости: News from the papers one picks (GTK 3)"
 url="https://github.com/haltia-de/news"
@@ -9,7 +9,7 @@ arch="noarch"
 provides="b8k-news=$pkgver-r$pkgrel"
 replaces="b8k-news"
 license="GPL-2.0-only"
-depends="python3 py3-gobject3 gtk+3.0"
+depends="python3 py3-gobject3 gtk+3.0 py3-feedparser"
 source="$pkgname-$pkgver.tar.gz::https://github.com/haltia-de/news/archive/v$pkgver.tar.gz"
 builddir="$srcdir/news-$pkgver"
 

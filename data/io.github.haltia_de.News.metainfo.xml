@@ -18,6 +18,12 @@
   <content_rating type="oars-1.1"/>
   <requires><control>touch</control></requires>
   <releases>
+    <release version="2.1.0" date="2026-10-19">
+      <description>
+        <p>Feeds are read by feedparser: more sites' feeds open, including RDF and broken ones, and stories get their pictures from media tags too.</p>
+        <p xml:lang="ru">Ленты читает feedparser: открывается больше лент, в том числе RDF и с ошибками, а картинки к новостям берутся и из медиатегов.</p>
+      </description>
+    </release>
     <release version="2.0.2" date="2026-10-19">
       <description>
         <p>Each version now says what changed; it shows in Settings → Updates.</p>
