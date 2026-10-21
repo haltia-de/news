@@ -15,7 +15,6 @@ import html
 import json
 import os
 import re
-import sys
 import threading
 import time
 from html.parser import HTMLParser
@@ -387,13 +386,28 @@ def search_feeds(text):
     return found
 
 
+def showable(stamp):
+    """The time, or None when local time cannot hold it (year 9999)."""
+    if stamp is None:
+        return None
+    try:
+        stamp.astimezone()
+    except (OverflowError, OSError, ValueError):
+        return None
+    return stamp
+
+
 def entry_when(entry):
-    """The story's time, aware, from feedparser's parsed dates (UTC)."""
+    """The story's time, aware, from feedparser's parsed dates (UTC).
+    None for a date that cannot be (0000-00-00) or shown (year 9999)."""
     for key in ("published_parsed", "updated_parsed"):
         t = entry.get(key)
         if t:
-            return datetime(*t[:6], tzinfo=timezone.utc)
-    return parse_when(entry.get("published") or entry.get("updated"))
+            try:
+                return showable(datetime(*t[:6], tzinfo=timezone.utc))
+            except (TypeError, ValueError, OverflowError):
+                pass
+    return showable(parse_when(entry.get("published") or entry.get("updated")))
 
 
 def entry_image(entry):
@@ -417,17 +431,21 @@ def one_feed(name, url):
     if feed is None:
         return items
     for entry in feed.entries:
-        title = (entry.get("title") or "").strip()
-        link = (entry.get("link") or "").strip()
-        # Only web links: anything else would reach the browser as an option.
-        if not title or not link.startswith(("https://", "http://")):
+        # One odd entry costs only itself, never the feed or the list.
+        try:
+            title = (entry.get("title") or "").strip()
+            link = (entry.get("link") or "").strip()
+            # Only web links: anything else would reach the browser as an option.
+            if not title or not link.startswith(("https://", "http://")):
+                continue
+            content = entry.get("content") or []
+            summary = (content[0].get("value") if content else "") or entry.get("summary") or ""
+            image = entry_image(entry)
+            if not image.startswith("https://") or "default" in image:
+                image = ""  # Фонтанка sends one stock picture for every story
+            items.append((entry_when(entry), name, title, link, summary.strip(), image))
+        except Exception:
             continue
-        content = entry.get("content") or []
-        summary = (content[0].get("value") if content else "") or entry.get("summary") or ""
-        image = entry_image(entry)
-        if not image.startswith("https://") or "default" in image:
-            image = ""  # Фонтанка sends one stock picture for every story
-        items.append((entry_when(entry), name, title, link, summary.strip(), image))
         if len(items) >= PER_FEED:
             break
     return items
@@ -526,11 +544,15 @@ def picture(url):
         def prepare(loader, width, height):
             nonlocal oversized
             oversized = width * height > 16 * 1024 * 1024
+            if oversized:
+                # The header alone is read so far. Size 0 makes the loader
+                # stop with an error before it allocates the pixels (PNG
+                # ignores a 1x1 size and decodes at full size), as
+                # GdkPixbuf.Pixbuf.get_file_info does.
+                loader.set_size(0, 0)
+                return
             scale = min(1.0, 900 / max(width, height))
-            # Signal callback exceptions are swallowed by PyGObject. Decode
-            # rejected images at 1x1 and discard them after closing instead.
-            loader.set_size(1 if oversized else max(1, int(width * scale)),
-                            1 if oversized else max(1, int(height * scale)))
+            loader.set_size(max(1, int(width * scale)), max(1, int(height * scale)))
 
         loader.connect("size-prepared", prepare)
         loader.write(data)
@@ -543,10 +565,17 @@ def picture(url):
 def headlines(feeds):
     from concurrent.futures import ThreadPoolExecutor
 
+    def safe_feed(feed):
+        # One broken feed must not hide the others' news.
+        try:
+            return one_feed(feed[0], feed[1])
+        except Exception:
+            return []
+
     found = []
     # All feeds at once: one slow site no longer holds up the others.
     with ThreadPoolExecutor(max_workers=4) as pool:
-        for items in pool.map(lambda f: one_feed(f[0], f[1]), feeds):
+        for items in pool.map(safe_feed, feeds):
             found.extend(items)
     epoch = datetime(1970, 1, 1, tzinfo=timezone.utc)
     found.sort(key=lambda item: item[0] or epoch, reverse=True)
