@@ -1,5 +1,15 @@
 # Что нового · What's new
 
+## 2.2.2 (2026-10-21)
+
+### Русский
+
+Картинки из лент больше не замедляют планшет и не приводят к нехватке памяти в Новостях из-за слишком большого размера. Медленный сайт больше не оставляет кнопку обновления недоступной. Источники, добавленные во время обновления, появляются сразу после его завершения.
+
+### English
+
+Oversized feed pictures no longer slow down the tablet or make News run out of memory. A slow site no longer leaves the refresh button disabled. Sources added during a refresh appear as soon as it ends.
+
 ## 2.2.1 (2026-10-19)
 
 ### Русский
