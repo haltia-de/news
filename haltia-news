@@ -17,6 +17,7 @@ import os
 import re
 import sys
 import threading
+import time
 from html.parser import HTMLParser
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
@@ -220,13 +221,50 @@ def save_feeds(feeds):
         pass
 
 
-def get(url, limit=2 * 1024 * 1024, timeout=10):
-    """(bytes, final url, content type) of an http(s) page."""
+def download(url, limit, timeout):
+    """Read bounded chunks within a wall-clock deadline, including opening."""
+    import urllib.parse
     import urllib.request
 
+    deadline = time.monotonic() + 20
+    class Redirects(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError("Download deadline exceeded")
+            req.timeout = min(timeout, remaining)
+            return super().redirect_request(req, fp, code, msg, headers, newurl)
+
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 haltia-news"})
-    with urllib.request.urlopen(req, timeout=timeout) as fh:
-        return fh.read(limit), fh.geturl(), fh.headers.get_content_type()
+    opener = urllib.request.build_opener(Redirects())
+    with opener.open(req, timeout=timeout) as fh:
+        final = fh.geturl()
+        parsed = urllib.parse.urlsplit(final)
+        if parsed.scheme not in ("http", "https") or not parsed.hostname:
+            raise ValueError("Invalid download URL")
+        chunks, size = [], 0
+        while size < limit:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError("Download deadline exceeded")
+            # HTTPResponse exposes its socket through the buffered reader.
+            # read1 performs at most one socket read, so trickling bytes cannot
+            # keep a single read alive past the wall-clock deadline.
+            fh.fp.raw._sock.settimeout(min(timeout, remaining))
+            chunk = fh.read1(min(64 * 1024, limit - size))
+            if time.monotonic() >= deadline:
+                raise TimeoutError("Download deadline exceeded")
+            if not chunk:
+                break
+            chunks.append(chunk)
+            size += len(chunk)
+        return b"".join(chunks), final, fh.headers
+
+
+def get(url, limit=2 * 1024 * 1024, timeout=10):
+    """(bytes, final url, content type) of an http(s) page."""
+    raw, final, headers = download(url, limit, timeout)
+    return raw, final, headers.get_content_type()
 
 
 ENTITY_MARKS = tuple("<!ENTITY".encode(enc) for enc in ("ascii", "utf-16-le", "utf-16-be",
@@ -458,13 +496,9 @@ def story(link, summary):
     """The story's paragraphs: the feed's, else the page's, else the summary."""
     if len(summary) >= FULL_FEED:
         return paragraphs(summary)
-    import urllib.request
-
     try:
-        req = urllib.request.Request(link, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=12) as fh:
-            raw = fh.read(PAGE_MAX)
-            charset = fh.headers.get_content_charset() or "utf-8"
+        raw, _final, headers = download(link, PAGE_MAX, 12)
+        charset = headers.get_content_charset() or "utf-8"
         parser = ArticleParser()
         parser.feed(raw.decode(charset, "replace"))
         for block in parser.ld:
@@ -482,19 +516,24 @@ def story(link, summary):
 
 
 def picture(url):
-    import urllib.request
-
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
-        with urllib.request.urlopen(req, timeout=12) as fh:
-            data = fh.read(PAGE_MAX)
+        data, _final, _headers = download(url, PAGE_MAX, 12)
         loader = GdkPixbuf.PixbufLoader()
+        oversized = False
+
+        def prepare(loader, width, height):
+            nonlocal oversized
+            oversized = width * height > 16 * 1024 * 1024
+            scale = min(1.0, 900 / max(width, height))
+            # Signal callback exceptions are swallowed by PyGObject. Decode
+            # rejected images at 1x1 and discard them after closing instead.
+            loader.set_size(1 if oversized else max(1, int(width * scale)),
+                            1 if oversized else max(1, int(height * scale)))
+
+        loader.connect("size-prepared", prepare)
         loader.write(data)
         loader.close()
-        pix = loader.get_pixbuf()
-        scale = min(1.0, 900 / pix.get_width())
-        return pix.scale_simple(int(pix.get_width() * scale), int(pix.get_height() * scale),
-                                GdkPixbuf.InterpType.BILINEAR)
+        return None if oversized else loader.get_pixbuf()
     except Exception:
         return None
 
@@ -551,6 +590,8 @@ class News(Gtk.Application):
         super().__init__(application_id=APP_ID)
         self.icons = {}
         self.busy = False
+        self.pending_refresh = False
+        self.current_links = set()
         self.have_items = False
         self.generation = 0
 
@@ -611,7 +652,7 @@ class News(Gtk.Application):
         self.story_scroll.add(self.story_port)
         self.stack.add_named(self.story_scroll, "story")
         self.story_box = None
-        self.stories = {}  # link -> paragraphs, for this run
+        self.stories = {}  # link -> paragraphs, for the current items
         self.showing = None
         win.add(self.stack)
         self.note("Загрузка")
@@ -645,6 +686,7 @@ class News(Gtk.Application):
 
     def refresh(self, jump):
         if self.busy:
+            self.pending_refresh = self.pending_refresh or jump
             return
         self.busy = True
         self.refresh_btn.set_sensitive(False)
@@ -665,6 +707,10 @@ class News(Gtk.Application):
         if gen != self.generation:
             return False
         self.busy = False
+        if self.pending_refresh:
+            self.pending_refresh = False
+            self.refresh(True)
+            return False
         self.refresh_btn.set_sensitive(True)
         if not items:
             if not self.have_items:
@@ -674,6 +720,9 @@ class News(Gtk.Application):
         if not jump:
             y = self.scroll.get_vadjustment().get_value()
         self.have_items = True
+        self.current_links = {item[3] for item in items}
+        self.stories = {link: paras for link, paras in self.stories.items()
+                        if link in self.current_links}
         self.listbox.foreach(lambda row: self.listbox.remove(row))
         for stamp, name, title, link, summary, image in items:
             row = Gtk.ListBoxRow()
@@ -971,7 +1020,8 @@ class News(Gtk.Application):
         def put_text(paras):
             if self.showing != link:
                 return False
-            self.stories[link] = paras
+            if link in self.current_links:
+                self.stories[link] = paras
             for child in text.get_children():
                 child.destroy()
             for para in paras or ["Текст новости не найден. Полная версия — в браузере."]:
