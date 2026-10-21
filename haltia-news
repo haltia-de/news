@@ -242,15 +242,17 @@ def download(url, limit, timeout):
         parsed = urllib.parse.urlsplit(final)
         if parsed.scheme not in ("http", "https") or not parsed.hostname:
             raise ValueError("Invalid download URL")
+        # HTTPResponse has no public socket timeout setter. Keep the socket
+        # once: it clears fp when a complete Content-Length body is read.
+        sock = fh.fp.raw._sock
         chunks, size = [], 0
-        while size < limit:
+        while size < limit and not fh.isclosed():
             remaining = deadline - time.monotonic()
             if remaining <= 0:
                 raise TimeoutError("Download deadline exceeded")
-            # HTTPResponse exposes its socket through the buffered reader.
             # read1 performs at most one socket read, so trickling bytes cannot
             # keep a single read alive past the wall-clock deadline.
-            fh.fp.raw._sock.settimeout(min(timeout, remaining))
+            sock.settimeout(min(timeout, remaining))
             chunk = fh.read1(min(64 * 1024, limit - size))
             if time.monotonic() >= deadline:
                 raise TimeoutError("Download deadline exceeded")
