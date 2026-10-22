@@ -1,5 +1,15 @@
 # Что нового · What's new
 
+## 2.2.3 (2026-10-22)
+
+### Русский
+
+Неверная дата в одной ленте больше не убирает новости из других лент. Слишком большие картинки из лент отклоняются до того, как они успеют замедлить планшет (#8).
+
+### English
+
+A wrong date in one feed no longer clears the news from other feeds. Very large feed pictures are refused before they can slow down the tablet (#8).
+
 ## 2.2.2 (2026-10-21)
 
 ### Русский

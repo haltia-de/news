@@ -1,3 +1,9 @@
+haltia-news (2.2.3) unstable; urgency=medium
+
+  * A wrong date in one feed no longer clears the news from other feeds. Very large feed pictures are refused before they can slow down the tablet (#8).
+
+ -- Haltia <rensomail@gmail.com>  Thu, 22 Oct 2026 23:00:00 +0300
+
 haltia-news (2.2.2) unstable; urgency=medium
 
   * Oversized feed pictures no longer slow down the tablet or make News run out of memory. A slow site no longer leaves the refresh button disabled. Sources added during a refresh appear as soon as it ends.
