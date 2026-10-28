@@ -1,3 +1,9 @@
+haltia-news (2.2.4) unstable; urgency=medium
+
+  * News starts a little faster: the feed parsing is loaded after the window appears.
+
+ -- Haltia <rensomail@gmail.com>  Wed, 28 Oct 2026 12:00:00 +0300
+
 haltia-news (2.2.3) unstable; urgency=medium
 
   * A wrong date in one feed no longer clears the news from other feeds. Very large feed pictures are refused before they can slow down the tablet (#8).

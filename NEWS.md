@@ -1,5 +1,15 @@
 # Что нового · What's new
 
+## 2.2.4 (2026-10-28)
+
+### Русский
+
+Новости открываются немного быстрее: разбор лент подгружается уже после появления окна.
+
+### English
+
+News starts a little faster: the feed parsing is loaded after the window appears.
+
 ## 2.2.3 (2026-10-22)
 
 ### Русский
