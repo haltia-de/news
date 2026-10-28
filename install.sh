@@ -23,7 +23,7 @@ lib=$prefix/lib/haltia-news
 install -D -m 644 "$here/haltia-news" "$root$lib/haltia_news_main.py"
 install -d -m 755 "$root$prefix/bin"
 cat > "$root$prefix/bin/haltia-news" <<EOF
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # Runs $lib/haltia_news_main.py as a module, so Python loads it compiled.
 import runpy
 import sys

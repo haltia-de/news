@@ -35,7 +35,7 @@ modules:
       - install -d /app/bin
       - |
         cat > /app/bin/haltia-news <<EOF
-        #!/usr/bin/python3
+        #!/usr/bin/env python3
         # Runs /app/lib/haltia-news/haltia_news_main.py as a module, so Python loads it compiled.
         import runpy
         import sys
