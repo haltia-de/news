@@ -38,6 +38,18 @@ The default prefix is `/usr/local`; `sh install.sh /mnt/root /usr` stages an
 installation under another root with the package prefix `/usr`.
 The installer copies files; dependencies must already be available.
 
+`install.sh` installs the script as the module
+`PREFIX/lib/haltia-news/haltia_news_main.py` and writes
+`PREFIX/bin/haltia-news` as a stub that runs it with `runpy.run_module(...,
+alter_sys=False)`: Python never caches the script it is started by, so the
+program's code loads from the `__pycache__` the package build writes
+(haltia-de/ci compiles every module). `sys.argv` and the command line
+`python3 PREFIX/bin/haltia-news` stay as they were (the Haltia shell finds
+programs by it); `__file__` is the module in `PREFIX/lib/haltia-news`. The
+Flatpak manifest writes the same stub and compiles `/app/lib/haltia-news`.
+Installed, the logos are found in `PREFIX/share/haltia-news`, two levels
+above that module's folder.
+
 ## Releases
 
 A release requires the user's explicit approval before tagging or publishing.

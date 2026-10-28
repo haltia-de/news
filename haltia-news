@@ -55,11 +55,12 @@ def _config(name):
     return new
 
 # Newest stories first, mixed across papers. Each row keeps its own time.
-# The papers' logos: PREFIX/share/haltia-news next to PREFIX/bin, or the
-# checkout's own folder.
+# The papers' logos: the checkout's own folder, or, installed (this code is
+# then PREFIX/lib/haltia-news/haltia_news_main.py, run by the stub
+# PREFIX/bin/haltia-news), PREFIX/share/haltia-news.
 HERE = os.path.dirname(os.path.realpath(__file__))
 LOGOS = HERE if os.path.exists(os.path.join(HERE, "news-dp.png")) else \
-    os.path.join(os.path.dirname(HERE), "share", "haltia-news")
+    os.path.join(os.path.dirname(os.path.dirname(HERE)), "share", "haltia-news")
 DEFAULT_FEEDS = (
     ("Интерфакс", "https://www.interfax.ru/rss", os.path.join(LOGOS, "news-interfax.png")),
     ("Фонтанка", "https://www.fontanka.ru/rss-feeds/rss.xml", os.path.join(LOGOS, "news-fontanka.png")),
