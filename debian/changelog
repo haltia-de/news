@@ -1,3 +1,9 @@
+haltia-news (2.2.5) unstable; urgency=medium
+
+  * The program starts faster: its code is loaded already compiled.
+
+ -- Haltia <rensomail@gmail.com>  Wed, 28 Oct 2026 14:00:00 +0300
+
 haltia-news (2.2.4) unstable; urgency=medium
 
   * News starts a little faster: the feed parsing is loaded after the window appears.
