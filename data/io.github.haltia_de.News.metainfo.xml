@@ -18,6 +18,12 @@
   <content_rating type="oars-1.1"/>
   <requires><control>touch</control></requires>
   <releases>
+    <release version="2.2.5" date="2026-10-28">
+      <description>
+        <p>The program starts faster: its code is loaded already compiled.</p>
+        <p xml:lang="ru">Программа запускается быстрее: её код загружается уже скомпилированным.</p>
+      </description>
+    </release>
     <release version="2.2.4" date="2026-10-28">
       <description>
         <p>News starts a little faster: the feed parsing is loaded after the window appears.</p>
