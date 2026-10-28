@@ -17,9 +17,7 @@ import os
 import re
 import threading
 import time
-from html.parser import HTMLParser
 from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
 
 import gi
 from gi.repository import GLib
@@ -158,6 +156,11 @@ row { min-height: 96px; }
 """
 
 def parse_when(raw):
+    # email.utils (with socket, random, calendar and email's own modules)
+    # is imported here, in the worker that reads the feeds, not before the
+    # first window: one stdlib module costs the tablet 0.2-0.3 s at start.
+    from email.utils import parsedate_to_datetime
+
     raw = (raw or "").strip()
     if not raw:
         return None
@@ -296,8 +299,19 @@ def feed_title(feed):
     return (feed.feed.get("title") or "").strip() or "Лента"
 
 
-class FeedLinks(HTMLParser):
-    """<link rel="alternate" type="application/rss+xml|atom+xml" href> of a page."""
+def html_parser(mixin):
+    """A parser of the mixin's class over html.parser.HTMLParser.
+
+    html.parser (with _markupbase) is imported only when a page is read,
+    in a worker thread, not before the first window."""
+    from html.parser import HTMLParser
+
+    return type(mixin.__name__, (mixin, HTMLParser), {})()
+
+
+class FeedLinks:
+    """<link rel="alternate" type="application/rss+xml|atom+xml" href> of a
+    page; made through html_parser()."""
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
@@ -325,7 +339,7 @@ def discover(text):
             return title, final
     except Exception:
         pass
-    links = FeedLinks()
+    links = html_parser(FeedLinks)
     links.feed(raw.decode("utf-8", "replace"))
     for href in links.found:
         feed_url = urllib.parse.urljoin(final, href)
@@ -458,8 +472,9 @@ def paragraphs(text):
     return [p.strip() for p in re.split(r"\n+", text) if p.strip()]
 
 
-class ArticleParser(HTMLParser):
-    """The paragraphs inside itemprop="articleBody", and any JSON-LD."""
+class ArticleParser:
+    """The paragraphs inside itemprop="articleBody", and any JSON-LD; made
+    through html_parser()."""
 
     def __init__(self):
         super().__init__(convert_charrefs=True)
@@ -519,7 +534,7 @@ def story(link, summary):
     try:
         raw, _final, headers = download(link, PAGE_MAX, 12)
         charset = headers.get_content_charset() or "utf-8"
-        parser = ArticleParser()
+        parser = html_parser(ArticleParser)
         parser.feed(raw.decode(charset, "replace"))
         for block in parser.ld:
             try:
